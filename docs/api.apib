@@ -1,0 +1,144 @@
+FORMAT: 1A
+HOST: https://token-directory-service.herokuapp.com
+
+# Token Directory Service
+
+This service stores Token Apps with all the required metadata to construct SOFA App Manifests for them. It provides index, curation, and search functionalities.
+
+
+# Group Apps
+## App Index [/v1/apps/]
++ Parameters
+    + offset: `80` (integer, optional) - Paging offset
+      + Default: `0`
+    + limit: `20` (integer, optional) - Page size
+      + Default: `10`
+
+### Fetch list of app manifests [GET]
++ Response 200 (application/json)
+  + Body
+    {
+      "apps": [
+        {
+          "languages": [
+            "en"
+          ],
+          "initRequest": {
+            "values": [
+              "paymentAddress",
+              "language"
+            ]
+          },
+          "protocol": "sofa-v1.0",
+          "interfaces": [
+            "ChatBot"
+          ],
+          "ethereumAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+          "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+          "displayName": "EtherGit",
+          "webApp": null
+        }
+      ]
+    }
+
+
+
+## App [/v1/apps/{eth_address}]
++ Parameters
+    + eth_address: 1 (required, string) - ethereum address of the app
+
+### Get app manifest [GET]
++ Response 200 (application/json)
+  + Body
+    {
+      "languages": [
+        "en"
+      ],
+      "initRequest": {
+        "values": [
+          "paymentAddress",
+          "language"
+        ]
+      },
+      "protocol": "sofa-v1.0",
+      "interfaces": [
+        "ChatBot"
+      ],
+      "ethereumAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+      "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+      "displayName": "EtherGit",
+      "webApp": null
+    }
+
++ Response 404 (application/json)
+
+        {
+            "errors": [
+                {
+                    "id": "not_found",
+                    "message": "Not found"
+                }
+        }
+
+# Group Search
+## Apps [/v1/search/apps/{?query,offset,limit}]
+### Search by partial username [GET]
++ Parameters
+    + query: `moxiemarl` (string, required) - Partial username to match on
+      Matches on usernames using Postgres ILIKE operator
+    + offset: `80` (integer, optional) - Paging offset
+      + Default: `0`
+    + limit: `20` (integer, optional) - Page size
+      + Default: `10`
+
++ Response 200 (application/json)
+  + Body
+    {
+      "offset": 0,
+      "query": "ether",
+      "results": [
+        {
+          "languages": [
+            "en"
+          ],
+          "initRequest": {
+            "values": [
+              "paymentAddress",
+              "language"
+            ]
+          },
+          "protocol": "sofa-v1.0",
+          "interfaces": [
+            "ChatBot"
+          ],
+          "ethereumAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+          "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+          "displayName": "EtherGit",
+          "webApp": null
+        }
+      ],
+      "limit": 1
+    }
+
+
+
+
+# Group Usage Notes
+## Errors
+
+All error messages will return both machine (`id`) and human readable (`message`) error message. All errors, except validation_error, return only one error. Some errors will also have an optional link to the documentation (url).
+
+validation_error with status code 400 is returned when the validation of the resource fails on POST or PUT requests. Response contains errors field with a list of errors.
+
+Important: Different error types (id) can be added and removed over time so you should make sure your application accepts new ones as well.
+
+```json
+{
+  "errors": [
+    {
+      "id": "not_found",
+      "message": "Not found"
+    }
+  ]
+}
+```
