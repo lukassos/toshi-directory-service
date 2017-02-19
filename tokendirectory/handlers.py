@@ -13,7 +13,8 @@ def sofa_manifest_from_row(row):
       "protocol": row['protocol'],
       "avatarUrl": row['avatar_url'],
       "interfaces": row['interfaces'],
-      "ethereumAddress": row['eth_address'],
+      "ownerAddress": row['eth_address'],
+      "paymentAddress": row['eth_address'],
       "webApp": row['web_app'],
       "languages": row['languages'],
       "initRequest": {"values": row['init_request'] }
