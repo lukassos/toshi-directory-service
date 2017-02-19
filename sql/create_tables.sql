@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS apps (
     interfaces TEXT[],
     languages TEXT[],
     init_request TEXT[],
+    featured BOOLEAN DEFAULT FALSE,
     created TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() AT TIME ZONE 'utc'),
     updated TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() AT TIME ZONE 'utc')
 );
+
+UPDATE database_version SET version_number = 1;

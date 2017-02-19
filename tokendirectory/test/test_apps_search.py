@@ -30,12 +30,54 @@ class SearchAppsHandlerTest(AsyncHandlerTest):
         resp = await self.fetch("/search/apps?query={}".format(positive_query), method="GET")
         self.assertEqual(resp.code, 200)
         body = json_decode(resp.body)
-        self.assertEqual(len(body['results']), 1)
+        self.assertEqual(len(body['apps']), 1)
 
         resp = await self.fetch("/search/apps?query={}".format(negative_query), method="GET")
         self.assertEqual(resp.code, 200)
         body = json_decode(resp.body)
-        self.assertEqual(len(body['results']), 0)
+        self.assertEqual(len(body['apps']), 0)
+
+    @gen_test
+    @requires_database
+    async def test_featured_query(self):
+
+        positive_query = 'bot'
+
+        setup_data = [
+            ("TokenBotA", TEST_ADDRESS[:-1] + 'f', False),
+            ("TokenBotB", TEST_ADDRESS[:-1] + 'e', False),
+            ("FeaturedBotA", TEST_ADDRESS[:-1] + 'd', True),
+            ("FeaturedBotB", TEST_ADDRESS[:-1] + 'c', True),
+            ("FeaturedBotC", TEST_ADDRESS[:-1] + 'b', True)
+        ]
+
+        for username, addr, featured in setup_data:
+            async with self.pool.acquire() as con:
+                await con.execute("INSERT INTO apps (username, eth_address, featured) VALUES ($1, $2, $3)", username, addr, featured)
+
+        resp = await self.fetch("/search/apps?query={}".format(positive_query), method="GET")
+        self.assertEqual(resp.code, 200)
+        body = json_decode(resp.body)
+        self.assertEqual(len(body['apps']), 5)
+
+        resp = await self.fetch("/search/apps?query={}&featured".format(positive_query), method="GET")
+        self.assertEqual(resp.code, 200)
+        body = json_decode(resp.body)
+        self.assertEqual(len(body['apps']), 3)
+
+        for true in ['', 'true', 'featured', 'TRUE', 'True']:
+
+            resp = await self.fetch("/search/apps?query={}&featured={}".format(positive_query, true), method="GET")
+            self.assertEqual(resp.code, 200)
+            body = json_decode(resp.body)
+            self.assertEqual(len(body['apps']), 3, "Failed to map featured={} to true".format(true))
+
+        for false in ['false', 'FALSE', 'False']:
+
+            resp = await self.fetch("/search/apps?query={}&featured={}".format(positive_query, false), method="GET")
+            self.assertEqual(resp.code, 200)
+            body = json_decode(resp.body)
+            self.assertEqual(len(body['apps']), 5, "Failed to map featured={} to false".format(false))
 
     @gen_test
     @requires_database
