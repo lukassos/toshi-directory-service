@@ -8,7 +8,7 @@ from asyncbb.test.database import requires_database
 from tokenservices.test.base import AsyncHandlerTest
 from tokenbrowser.crypto import sign_payload
 from tokenbrowser.request import sign_request
-from tokenbrowser.utils import data_decoder
+from ethutils import data_decoder
 
 TEST_ADDRESS = "0x056db290f8ba3250ca64a45d16284d04bc6f5fbf"
 
