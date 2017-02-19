@@ -13,6 +13,8 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       + Default: `0`
     + limit: `20` (integer, optional) - Page size
       + Default: `10`
+    + featured: `true` (boolean, optional) - Only return featured things
+      + Default: `false`
 
 ### Fetch list of app manifests [GET]
 + Response 200 (application/json)
@@ -21,6 +23,7 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       "offset": 0,
       "query": "",
       "limit": 10,
+      "featured": false,
       "apps": [
         {
           "languages": [
@@ -45,6 +48,43 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       ]
     }
 
+## App Index [/v1/apps/featured]
++ Parameters
+    + offset: `80` (integer, optional) - Paging offset
+      + Default: `0`
+    + limit: `20` (integer, optional) - Page size
+      + Default: `10`
+
+### Fetch list of featured app manifests [GET]
++ Response 200 (application/json)
+  + Body
+    {
+      "offset": 0,
+      "query": "",
+      "limit": 10,
+      "featured": true,
+      "apps": [
+        {
+          "languages": [
+            "en"
+          ],
+          "initRequest": {
+            "values": [
+              "paymentAddress",
+              "language"
+            ]
+          },
+          "protocol": "sofa-v1.0",
+          "interfaces": [
+            "ChatBot"
+          ],
+          "ethereumAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+          "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+          "displayName": "EtherGit",
+          "webApp": null
+        }
+      ]
+    }
 
 
 ## App [/v1/apps/{eth_address}]
@@ -95,13 +135,16 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       + Default: `0`
     + limit: `20` (integer, optional) - Page size
       + Default: `10`
+    + featured: `true` (boolean, optional) - Only return featured things
+      + Default: `false`
 
 + Response 200 (application/json)
   + Body
     {
       "offset": 0,
       "query": "ether",
-      "appss": [
+      "featured": false,
+      "apps": [
         {
           "languages": [
             "en"

@@ -32,18 +32,21 @@ class AppsHandler(DatabaseMixin, BaseHandler):
         self.write(result)
 
 class SearchAppsHandler(DatabaseMixin, BaseHandler):
-    async def get(self):
+    async def get(self, force_featured=None):
         try:
             offset = int(self.get_query_argument('offset', 0))
             limit = int(self.get_query_argument('limit', 10))
         except ValueError:
             raise JSONHTTPError(400, body={'errors': [{'id': 'bad_arguments', 'message': 'Bad Arguments'}]})
 
-        featured = self.get_query_argument('featured', 'false')
-        if featured.lower() == 'false':
-            featured = False
-        else:
+        if force_featured:
             featured = True
+        else:
+            featured = self.get_query_argument('featured', 'false')
+            if featured.lower() == 'false':
+                featured = False
+            else:
+                featured = True
         query = self.get_query_argument('query', None)
 
         args = []
@@ -67,5 +70,6 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
             'query': query or '',
             'offset': offset,
             'limit': limit,
-            'apps': results
+            'apps': results,
+            'featured': featured
         })

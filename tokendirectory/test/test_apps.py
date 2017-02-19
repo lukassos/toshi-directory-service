@@ -41,6 +41,12 @@ class AppsHandlerTest(AsyncHandlerTest):
         body = json_decode(resp.body)
         self.assertEqual(len(body['apps']), 5)
 
+        # test /apps/featured
+        resp = await self.fetch("/apps/featured", method="GET")
+        self.assertResponseCodeEqual(resp, 200)
+        body = json_decode(resp.body)
+        self.assertEqual(len(body['apps']), 3)
+
         resp = await self.fetch("/apps?featured", method="GET")
         self.assertEqual(resp.code, 200)
         body = json_decode(resp.body)
