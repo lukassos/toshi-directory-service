@@ -15,6 +15,7 @@ def sofa_manifest_from_row(row):
         "interfaces": row['interfaces'],
         "ownerAddress": row['eth_address'],
         "paymentAddress": row['eth_address'],
+        "featured": row['featured'],
         "webApp": row['web_app'],
         "languages": row['languages'],
         "initRequest": {"values": row['init_request']}
@@ -58,10 +59,13 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
                 sql += " AND featured IS TRUE"
         elif featured:
             sql += " WHERE featured IS TRUE"
+        countsql = "SELECT COUNT(*) " + sql[8:]
+        countargs = args[:]
         sql += " ORDER BY username OFFSET ${} LIMIT ${}".format(len(args) + 1, len(args) + 2)
         args.extend([offset, limit])
 
         async with self.db:
+            count = await self.db.fetchrow(countsql, *countargs)
             rows = await self.db.fetch(sql, *args)
 
         results = [sofa_manifest_from_row(row) for row in rows]
@@ -71,5 +75,6 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
             'offset': offset,
             'limit': limit,
             'apps': results,
-            'featured': featured
+            'featured': featured,
+            'total': count['count']
         })
