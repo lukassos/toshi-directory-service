@@ -5,6 +5,11 @@
   "contour": "2.0.0",
   "version": "2.0.0",
   "license": "MIT",
+  "engines": {
+    "node": "6.9.5",
+    "npm": "3.10.10",
+    "yarn": "0.18.1"
+  },
   "scripts": {
     "css": "node tasks/css",
     "css:build": "node tasks/css minify",
