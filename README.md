@@ -25,6 +25,7 @@ heroku buildpacks:add https://github.com/tristan/heroku-buildpack-pgsql-stunnel.
 heroku buildpacks:add heroku/nodejs
 heroku buildpacks:add heroku/python
 
+heroku config:set NODE_ENV=development
 heroku config:set SSH_KEY=$(cat path/to/your/keys/id_rsa | base64)
 ```
 
