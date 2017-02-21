@@ -22,6 +22,7 @@ DATABASE_URL=postgres://<postgres-dsn> env/bin/python -m tokendirectory
 ```
 heroku buildpacks:add https://github.com/debitoor/ssh-private-key-buildpack.git
 heroku buildpacks:add https://github.com/tristan/heroku-buildpack-pgsql-stunnel.git
+heroku buildpacks:add heroku/nodejs
 heroku buildpacks:add heroku/python
 
 heroku config:set SSH_KEY=$(cat path/to/your/keys/id_rsa | base64)
