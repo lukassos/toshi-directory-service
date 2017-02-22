@@ -8,37 +8,39 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <div class="body">
-      <div class="header">
-        <div>
-	  <div id="welcome-msg"></div>
-	  <div class="code">
-	    <img id="qrcode">
-            <form method="POST" action="/logout">
-              <input type="submit" value="logout">
-            </form>
-	  </div>
-        </div>
+    <div class="header">
+      <div>
+	<div id="welcome-msg"></div>
+	<div class="code">
+	  <img id="qrcode">
+          <form method="POST" action="/logout">
+            <input type="submit" value="logout">
+          </form>
+	</div>
       </div>
-      <h3>Submit new App</h3>
-      <form id="newappform">
-        <label for="owner_address">
-          App Address:
-          <input name="owner_address">
-        </label>
-        <label for="display_name">
-          Name:
-          <input name="display_name">
-        </label>
-        <label for="avatar_url">
-          Avatar URL:
-          <input name="avatar_url">
-        </label>
-        <input type="submit" value="submit">
-      </form>
-      <h3>Your Apps</h3>
-      <table id="apps">
-      </table>
+    </div>
+    <div id="pages">
+      <div id="apps-page">
+        <h3>Submit new App</h3>
+        <form id="newappform">
+          <label for="owner_address">
+            App Address:
+            <input name="owner_address">
+          </label>
+          <label for="display_name">
+            Name:
+            <input name="display_name">
+          </label>
+          <label for="avatar_url">
+            Avatar URL:
+            <input name="avatar_url">
+          </label>
+          <input type="submit" value="submit">
+        </form>
+        <h3>Your Apps</h3>
+        <table id="apps-table">
+        </table>
+      </div>
     </div>
     <script src="/registry.js"></script>
   </body>

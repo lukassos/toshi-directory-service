@@ -54,20 +54,37 @@ function createRemoveFromFeaturedButton(ftd, otd, address) {
   otd.appendChild(a);
 }
 
-let apptable = document.getElementById('apps');
-function newAppRow(app) {
-  let newtr = document.createElement('tr');
+function removeChildren(el) {
+  if (el.childNodes) {
+    while (el.childNodes.length > 0) {
+      el.childNodes[0].remove();
+    }
+  }
+}
 
-  // icon
+let apptable = document.getElementById('apps-table');
+function newAppRow(app, tr) {
+  let newtr = tr || document.createElement('tr');
+
   let td_icon = document.createElement('td');
-  let img_icon = document.createElement('img');
-  img_icon.classList.add('appicon');
-  img_icon.src = app['avatarUrl'];
-  td_icon.appendChild(img_icon);
-
   let td_name = document.createElement('td');
-  td_name.appendChild(document.createTextNode(app['displayName']));
 
+  function add_icon_and_name() {
+    // config icon
+    let img_icon = document.createElement('img');
+    img_icon.classList.add('appicon');
+    img_icon.src = app['avatarUrl'];
+    td_icon.appendChild(img_icon);
+
+    // name
+    td_name.appendChild(document.createTextNode(app['displayName']));
+  }
+
+  // address
+  let td_address = document.createElement('td');
+  td_address.appendChild(document.createTextNode(app['ownerAddress']));
+
+  // featured
   let td_featured = document.createElement('td');
   let td_featured_opts = document.createElement('td');
   if (app['featured']) {
@@ -81,14 +98,80 @@ function newAppRow(app) {
     createRequestFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
   }
 
+  let td_opts = document.createElement('td');
+
+  function editme() {
+    removeChildren(td_icon);
+    removeChildren(td_name);
+    removeChildren(td_opts);
+
+    let editicon = document.createElement('input');
+    editicon.value = app['avatarUrl'];
+    td_icon.appendChild(editicon);
+    let editname = document.createElement('input');
+    editname.value = app['displayName'];
+    td_name.appendChild(editname);
+    let savea = document.createElement('a');
+    savea.href = '';
+    savea.addEventListener('click', (event) => {
+      event.preventDefault();
+      removeChildren(td_icon);
+      removeChildren(td_name);
+      removeChildren(td_opts);
+      app['avatarUrl'] = editicon.value;
+      app['displayName'] = editname.value;
+      add_icon_and_name();
+      addeditlink();
+      http('/registry/apps', {
+        method: 'PUT',
+        data: {
+          'avatar_url': editicon.value,
+          'owner_address': app['ownerAddress'],
+          'display_name': editname.value
+        }
+      });
+    }, false);
+    savea.appendChild(document.createTextNode("(save)"));
+    let cancelsavea = document.createElement('a');
+    cancelsavea.href = '';
+    cancelsavea.addEventListener('click', (event) => {
+      event.preventDefault();
+      removeChildren(td_icon);
+      removeChildren(td_name);
+      removeChildren(td_opts);
+      add_icon_and_name();
+      addeditlink();
+    }, false);
+    cancelsavea.appendChild(document.createTextNode("(cancel)"));
+    td_opts.appendChild(savea);
+    td_opts.appendChild(cancelsavea);
+  }
+
+  function addeditlink() {
+    let edita = document.createElement('a');
+    edita.href = '';
+    edita.addEventListener('click', (event) => {
+      event.preventDefault();
+      editme();
+    }, false);
+    edita.appendChild(document.createTextNode("(edit)"));
+    td_opts.appendChild(edita);
+  }
+
   newtr.appendChild(td_icon);
   newtr.appendChild(td_name);
+  newtr.appendChild(td_address);
   newtr.appendChild(td_featured);
   newtr.appendChild(td_featured_opts);
+  newtr.appendChild(td_opts);
+  add_icon_and_name();
+  addeditlink();
 
-  apptable.appendChild(newtr);
-  if (apptable.children.length % 2 == 0) {
-    newtr.classList.add('oddrow');
+  if (!tr) {
+    apptable.appendChild(newtr);
+    if (apptable.children.length % 2 == 0) {
+      newtr.classList.add('oddrow');
+    }
   }
 }
 

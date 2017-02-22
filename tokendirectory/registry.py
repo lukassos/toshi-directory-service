@@ -126,6 +126,43 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         self.write(sofa_manifest_from_row(row))
 
+    async def put(self):
+        """Handles submitting a new app to the directory service"""
+
+        if not self.current_user:
+            raise JSONHTTPError(401)
+
+        if not all(x in self.json for x in ['display_name', 'owner_address']):
+            raise JSONHTTPError(400, body={'errors': [{'id': 'bad_arguments', 'message': 'Bad Arguments'}]})
+
+        owner_address = self.json['owner_address']
+        if not validate_address(owner_address):
+            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_address', 'message': 'Invalid Arguments'}]})
+
+        # check if the user has already submitted this app
+        async with self.db:
+            existing = await self.db.fetchrow(
+                "SELECT * FROM submissions WHERE submitter_address = $1 AND app_eth_address = $2",
+                self.current_user, self.json['owner_address'])
+        if not existing:
+            raise JSONHTTPError(400, body={'errors': [{'id': 'app_does_not_exists', 'message': 'App Doesn\'t exists'}]})
+
+        display_name = self.json['display_name']
+        avatar_url = self.json.get('avatar_url', None)
+        if not avatar_url:
+            avatar_url = 'https://token-id-service.herokuapp.com/identicon/{}.png'.format(owner_address)
+
+        async with self.db:
+            await self.db.execute(
+                "UPDATE apps "
+                "SET display_name = $1, avatar_url = $2 "
+                "WHERE eth_address = $3",
+                display_name, avatar_url, owner_address)
+            row = await self.db.fetchrow("SELECT * FROM apps WHERE eth_address = $1", owner_address)
+            await self.db.commit()
+
+        self.write(sofa_manifest_from_row(row))
+
 class RequestFeaturedHandler(UserMixin, DatabaseMixin, BaseHandler):
 
     async def post(self):
