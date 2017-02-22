@@ -7,21 +7,34 @@
     <title>Token Directory Service - Admin</title>
     <link rel="stylesheet" href="/style.css">
   </head>
-  <body>
-    <div class="body">
-      <div class="header">
-        <div>
-	  <div id="welcome-msg"></div>
-	  <div class="code">
-	    <img id="qrcode">
-            <form method="POST" action="/logout">
-              <input type="submit" value="logout">
-            </form>
-	  </div>
-        </div>
+  <body class="hidden">
+    <div class="header">
+      <div>
+	<div id="welcome-msg"></div>
+	<div class="code">
+	  <img id="qrcode">
+          <form method="POST" action="/logout">
+            <input type="submit" value="logout">
+          </form>
+	</div>
       </div>
-      <table id="apps">
-      </table>
+    </div>
+    <ul id="nav">
+      <li id="appsnav" class="active">APPS</li>
+      <li id="adminsnav">ADMINS</li>
+    </ul>
+    <div id="pages">
+      <div id="apps-page">
+        <table id="apps-table">
+        </table>
+      </div>
+      <div id="admins-page" class="hidden">
+        Add New: <input id="admins-search-input">
+        <span id="admins-searching-indicator" class="hidden">searching...</span>
+        <ul id="admins-search-results"></ul>
+        <table id="admins-table">
+        </table>
+      </div>
     </div>
     <script src="/admin.js"></script>
   </body>
