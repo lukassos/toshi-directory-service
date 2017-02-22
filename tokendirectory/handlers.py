@@ -1,15 +1,11 @@
-import regex
-import json
 import urllib.parse
 
-from asyncbb.handlers import BaseHandler
+from asyncbb.handlers import BaseHandler, JsonBodyMixin
 from asyncbb.database import DatabaseMixin
 from asyncbb.errors import JSONHTTPError
-from tokenservices.handlers import RequestVerificationMixin
-from tokenservices.handlers import WebLoginHandler
 from tokenbrowser.id_service_client import IdServiceClient
-from tornado.escape import json_encode
 from tornado.web import StaticFileHandler
+from asyncbb.log import log
 
 def sofa_manifest_from_row(row):
     return {
@@ -99,18 +95,6 @@ class UserMixin:
         # TODO
         return True if user else False
 
-class LoginHandler(WebLoginHandler):
-
-    def is_address_allowed(self, address):
-        return True
-
-    def on_login(self, address):
-
-        self.set_secure_cookie("user", address)
-        self.write({
-            "address": address
-        })
-
 class LogoutHandler(BaseHandler):
 
     def post(self):
@@ -120,13 +104,31 @@ class LogoutHandler(BaseHandler):
         self.clear_all_cookies()
         self.redirect("/login?redirect={}".format(redirect))
 
-class LoginPageHandler(StaticFileHandler):
+class LoginPageHandler(JsonBodyMixin, StaticFileHandler):
 
     def initialize(self):
         super().initialize('public/')
 
     def get(self):
         return super().get('login.html')
+
+    async def post(self):
+        if 'auth_token' not in self.json:
+            raise JSONHTTPError(400, body={'errors': [{'id': 'bad_arguments', 'message': 'Bad Arguments'}]})
+        token = self.json['auth_token']
+
+        idclient = IdServiceClient(use_tornado=True)
+        try:
+            user = await idclient.whodis(token)
+        except:
+            log.exception("...")
+            user = None
+
+        if user:
+            self.set_secure_cookie("user", user['owner_address'])
+            self.set_status(204)
+        else:
+            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_token', 'message': 'Invalid token'}]})
 
 class CurrentUserHandler(UserMixin, BaseHandler):
 

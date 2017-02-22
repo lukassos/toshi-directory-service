@@ -8,7 +8,6 @@ from . import registry
 urls = admin.urls + registry.urls + [
     # auth
     (r"^/login/?$", handlers.LoginPageHandler),
-    (r"^/login/([a-fA-F0-9]+)/?$", handlers.LoginHandler),
     (r"^/logout/?$", handlers.LogoutHandler),
     (r"^/currentuser/?$", handlers.CurrentUserHandler),
 

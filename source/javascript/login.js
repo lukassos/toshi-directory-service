@@ -1,6 +1,8 @@
 import qrImage from 'qr-image';
 import http from './http.js';
 
+const id_service_url = process.env.ID_SERVICE_URL;
+
 // TODO docs on how to use as image
 const getQRDataURI = (data) => {
   let pngBuffer = qrImage.imageSync(data, {type: 'png'});
@@ -21,28 +23,22 @@ function updateQRCode() {
       token += h;
     }
   }
-  let url = document.location.protocol + '//' + document.location.hostname;
-  if (document.location.protocol == 'http:') {
-    if (document.location.port !== 80) {
-      url += ':' + document.location.port;
-    }
-  } else if (document.location.protocol == 'https:') {
-    // ... should never be a different port
-  }
-  url += document.location.pathname + '/' + token;
-  qrimage.src = getQRDataURI("web-signin:" + url);
+  qrimage.src = getQRDataURI("web-signin:" + token);
   return token;
 }
 
 function run() {
   let token = updateQRCode();
-  http(document.location.pathname + '/' + token).then((data) => {
-    let path = new URLSearchParams(document.location.search).get('redirect');
-    if (path == null || path == '') {
-      path = '/';
-    }
-    document.location.href = path;
-  }).catch(function(error) {
+  http(id_service_url + '/v1/login/' + token).then((data) => {
+    console.log('........', data);
+    return http('/login', {method: 'POST', data: data}).then((data) => {
+      let path = new URLSearchParams(document.location.search).get('redirect');
+      if (path == null || path == '') {
+        path = '/';
+      }
+      document.location.href = path;
+    });
+  }).catch((error) => {
     console.log(error);
     run();
   });

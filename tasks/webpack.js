@@ -1,5 +1,6 @@
 const config = require('./contour');
 const {source, dest} = config.paths;
+const webpack = require('webpack');
 
 const entry = {};
 
@@ -12,7 +13,7 @@ module.exports = {
   output: {
     path: dest,
     publicPath: '/',
-    filename: '[name].js',
+    filename: '[name].js'
   },
   stats: {
     colors: true,
@@ -28,5 +29,7 @@ module.exports = {
       }
     }]
   },
-  plugins: []
+  plugins: [
+    new webpack.EnvironmentPlugin(["ID_SERVICE_URL"])
+  ]
 };
