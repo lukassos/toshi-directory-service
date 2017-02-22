@@ -27,7 +27,7 @@
     "rev": "node tasks/rev",
     "imagemin": "node tasks/imagemin",
     "clean": "node tasks/clean",
-    "dev": "npm run dev:init && parallelshell 'npm run css:watch' 'npm run templates:watch' 'npm run svg:watch' 'npm run copy:watch' 'npm run webpack' './run.sh'",
+    "dev": "npm run dev:init && parallelshell 'npm run css:watch' 'npm run templates:watch' 'npm run svg:watch' 'npm run copy:watch' 'npm run webpack'",
     "dev:init": "mkdirp 'public' && npm run css && npm run svg && npm run templates && npm run copy",
     "build": "npm run build:init && npm run webpack:build && npm run rev",
     "build:init": "mkdirp 'public' && npm run clean && npm run svg && npm run templates:build && npm run css:build && npm run copy && npm run imagemin",

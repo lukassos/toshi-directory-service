@@ -31,7 +31,8 @@ module.exports = {
     "webpack": {
       "entries": [
         "admin",
-        "login"
+        "login",
+        "registry"
       ]
     }
   }

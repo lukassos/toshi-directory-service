@@ -1,4 +1,3 @@
-
 import http from './http.js';
 
 http('/currentuser').then((data) => {
@@ -90,7 +89,7 @@ function newAppRow(app) {
 }
 
 function loadApps() {
-  http('/v1/apps').then((data) => {
+  http('/registry/apps').then((data) => {
     let apps = data['apps'];
     for (var i = 0; i < apps.length; i++) {
       let app = apps[i];
@@ -98,3 +97,22 @@ function loadApps() {
     }
   });
 }
+
+let form = document.getElementById('newappform');
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  let elems = document.forms['newappform'].elements;
+  let avatar_url = elems['avatar_url'].value;
+  let owner_address = elems['owner_address'].value;
+  let display_name = elems['display_name'].value;
+  http('/registry/apps', {
+    method: 'POST',
+    data: {
+      'avatar_url': avatar_url,
+      'owner_address': owner_address,
+      'display_name': display_name
+    }
+  }).then((data) => {
+    newAppRow(data);
+  });
+});

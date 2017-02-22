@@ -29,15 +29,19 @@ function updateQRCode() {
   } else if (document.location.protocol == 'https:') {
     // ... should never be a different port
   }
-  url += '/admin/login/' + token;
+  url += document.location.pathname + '/' + token;
   qrimage.src = getQRDataURI("web-signin:" + url);
   return token;
 }
 
 function run() {
   let token = updateQRCode();
-  http('/admin/login/' + token).then((data) => {
-    document.location.href = '/admin';
+  http(document.location.pathname + '/' + token).then((data) => {
+    let path = new URLSearchParams(document.location.search).get('redirect');
+    if (path == null || path == '') {
+      path = '/';
+    }
+    document.location.href = path;
   }).catch(function(error) {
     console.log(error);
     run();

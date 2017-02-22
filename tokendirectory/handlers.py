@@ -1,11 +1,15 @@
 import regex
 import json
+import urllib.parse
 
 from asyncbb.handlers import BaseHandler
 from asyncbb.database import DatabaseMixin
 from asyncbb.errors import JSONHTTPError
 from tokenservices.handlers import RequestVerificationMixin
+from tokenservices.handlers import WebLoginHandler
+from tokenbrowser.id_service_client import IdServiceClient
 from tornado.escape import json_encode
+from tornado.web import StaticFileHandler
 
 def sofa_manifest_from_row(row):
     return {
@@ -78,3 +82,60 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
             'featured': featured,
             'total': count['count']
         })
+
+class UserMixin:
+
+    def get_current_user(self):
+        val = self.get_secure_cookie("user")
+        if isinstance(val, bytes):
+            val = val.decode('ascii')
+        if not val:
+            # make sure empty strings aren't counted as valid
+            return None
+        return val
+
+    def is_admin_user(self):
+        user = self.get_current_user()
+        # TODO
+        return True if user else False
+
+class LoginHandler(WebLoginHandler):
+
+    def is_address_allowed(self, address):
+        return True
+
+    def on_login(self, address):
+
+        self.set_secure_cookie("user", address)
+        self.write({
+            "address": address
+        })
+
+class LogoutHandler(BaseHandler):
+
+    def post(self):
+
+        redirect = urllib.parse.urlparse(self.request.headers.get('Referer', '')).path
+
+        self.clear_all_cookies()
+        self.redirect("/login?redirect={}".format(redirect))
+
+class LoginPageHandler(StaticFileHandler):
+
+    def initialize(self):
+        super().initialize('public/')
+
+    def get(self):
+        return super().get('login.html')
+
+class CurrentUserHandler(UserMixin, BaseHandler):
+
+    async def get(self):
+        address = self.current_user
+        if address:
+            idclient = IdServiceClient(use_tornado=True)
+            user = await idclient.get_user(address)
+        else:
+            raise JSONHTTPError(401)
+
+        self.write({"user": user})

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Token Directory Service - Admin</title>
+    <title>Token Directory Service - App Registry</title>
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
@@ -20,9 +20,26 @@
 	  </div>
         </div>
       </div>
+      <h3>Submit new App</h3>
+      <form id="newappform">
+        <label for="owner_address">
+          App Address:
+          <input name="owner_address">
+        </label>
+        <label for="display_name">
+          Name:
+          <input name="display_name">
+        </label>
+        <label for="avatar_url">
+          Avatar URL:
+          <input name="avatar_url">
+        </label>
+        <input type="submit" value="submit">
+      </form>
+      <h3>Your Apps</h3>
       <table id="apps">
       </table>
     </div>
-    <script src="/admin.js"></script>
+    <script src="/registry.js"></script>
   </body>
 </html>
