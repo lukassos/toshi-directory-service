@@ -20,4 +20,8 @@ CREATE TABLE IF NOT EXISTS submissions (
     PRIMARY KEY (app_eth_address, submitter_address)
 );
 
-UPDATE database_version SET version_number = 2;
+CREATE TABLE IF NOT EXISTS admins (
+    eth_address TEXT PRIMARY KEY
+);
+
+UPDATE database_version SET version_number = 3;

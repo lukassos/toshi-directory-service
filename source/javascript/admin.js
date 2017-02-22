@@ -29,6 +29,14 @@ function createAddToFeaturedButton(ftd, otd, address) {
     event.preventDefault();
     http('/admin/featured/add', {method: 'POST', data: {address: address}}).then((data) => {
       a.remove();
+      var item = ftd.childNodes[0];
+      if (item) {
+        item.remove();
+      }
+      item = otd.childNodes[0];
+      if (item) {
+        item.remove();
+      }
       ftd.appendChild(document.createTextNode("featured"));
       createRemoveFromFeaturedButton(ftd, otd, address);
     });
@@ -55,6 +63,23 @@ function createRemoveFromFeaturedButton(ftd, otd, address) {
   otd.appendChild(a);
 }
 
+function createRejectFeaturedButton(ftd, otd, address) {
+  let a = document.createElement('a');
+  a.href = '';
+  a.addEventListener('click', (event) => {
+    event.preventDefault();
+    http('/admin/featured/reject', {method: 'POST', data: {address: address}}).then((data) => {
+      a.remove();
+      var item = ftd.childNodes[0];
+      if (item) {
+        item.remove();
+      }
+    });
+  }, false);
+  a.appendChild(document.createTextNode("(reject)"));
+  otd.appendChild(a);
+}
+
 let apptable = document.getElementById('apps');
 function newAppRow(app) {
   let newtr = document.createElement('tr');
@@ -75,6 +100,10 @@ function newAppRow(app) {
     td_featured.appendChild(document.createTextNode("featured"));
     createRemoveFromFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
   } else {
+    if (app['requestForFeatured']) {
+      td_featured.appendChild(document.createTextNode("requested"));
+      createRejectFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
+    }
     createAddToFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
   }
 
@@ -90,7 +119,7 @@ function newAppRow(app) {
 }
 
 function loadApps() {
-  http('/v1/apps').then((data) => {
+  http('/admin/apps').then((data) => {
     let apps = data['apps'];
     for (var i = 0; i < apps.length; i++) {
       let app = apps[i];

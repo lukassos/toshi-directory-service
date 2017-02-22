@@ -90,11 +90,6 @@ class UserMixin:
             return None
         return val
 
-    def is_admin_user(self):
-        user = self.get_current_user()
-        # TODO
-        return True if user else False
-
 class LogoutHandler(BaseHandler):
 
     def post(self):

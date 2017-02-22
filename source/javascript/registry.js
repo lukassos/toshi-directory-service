@@ -21,18 +21,18 @@ http('/currentuser').then((data) => {
   console.log(error);
 });
 
-function createAddToFeaturedButton(ftd, otd, address) {
+function createRequestFeaturedButton(ftd, otd, address) {
   let a = document.createElement('a');
   a.href = '';
   a.addEventListener('click', (event) => {
     event.preventDefault();
-    http('/admin/featured/add', {method: 'POST', data: {address: address}}).then((data) => {
+    http('/registry/featured/add', {method: 'POST', data: {address: address}}).then((data) => {
       a.remove();
-      ftd.appendChild(document.createTextNode("featured"));
+      ftd.appendChild(document.createTextNode("requested"));
       createRemoveFromFeaturedButton(ftd, otd, address);
     });
   }, false);
-  a.appendChild(document.createTextNode("(add)"));
+  a.appendChild(document.createTextNode("(request add to featured)"));
   otd.appendChild(a);
 }
 
@@ -41,16 +41,16 @@ function createRemoveFromFeaturedButton(ftd, otd, address) {
   a.href = '';
   a.addEventListener('click', (event) => {
     event.preventDefault();
-    http('/admin/featured/remove', {method: 'POST', data: {address: address}}).then((data) => {
+    http('/registry/featured/remove', {method: 'POST', data: {address: address}}).then((data) => {
       a.remove();
       var item = ftd.childNodes[0];
       if (item) {
         item.remove();
       }
-      createAddToFeaturedButton(ftd, otd, address);
+      createRequestFeaturedButton(ftd, otd, address);
     });
   }, false);
-  a.appendChild(document.createTextNode("(remove)"));
+  a.appendChild(document.createTextNode("(remove from featured)"));
   otd.appendChild(a);
 }
 
@@ -72,9 +72,13 @@ function newAppRow(app) {
   let td_featured_opts = document.createElement('td');
   if (app['featured']) {
     td_featured.appendChild(document.createTextNode("featured"));
+  } else if (app['requestForFeatured']) {
+    td_featured.appendChild(document.createTextNode("requested"));
+  }
+  if (app['featured'] || app['requestForFeatured']) {
     createRemoveFromFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
   } else {
-    createAddToFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
+    createRequestFeaturedButton(td_featured, td_featured_opts, app['ownerAddress']);
   }
 
   newtr.appendChild(td_icon);

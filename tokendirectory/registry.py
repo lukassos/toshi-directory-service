@@ -37,7 +37,7 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
                 "SELECT count(*) FROM submissions WHERE submitter_address = $1",
                 self.current_user)
             apps = await self.db.fetch(
-                "SELECT apps.* FROM submissions JOIN apps ON "
+                "SELECT apps.*, submissions.request_for_featured FROM submissions JOIN apps ON "
                 "submissions.app_eth_address = apps.eth_address "
                 "WHERE submissions.submitter_address = $1 "
                 "ORDER BY apps.username "
@@ -46,7 +46,11 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
                 self.current_user,
                 offset, limit)
 
-        results = [sofa_manifest_from_row(row) for row in apps]
+        results = []
+        for row in apps:
+            val = sofa_manifest_from_row(row)
+            val['requestForFeatured'] = row['request_for_featured']
+            results.append(val)
 
         self.write({
             'offset': offset,
@@ -122,7 +126,36 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         self.write(sofa_manifest_from_row(row))
 
+class RequestFeaturedHandler(UserMixin, DatabaseMixin, BaseHandler):
+
+    async def post(self):
+        if not self.current_user:
+            raise JSONHTTPError(401)
+
+        address = self.json['address']
+        async with self.db:
+            await self.db.execute("UPDATE submissions SET request_for_featured = TRUE WHERE app_eth_address = $1", address)
+            await self.db.commit()
+
+        self.set_status(204)
+
+class RemoveFeaturedHandler(UserMixin, DatabaseMixin, BaseHandler):
+
+    async def post(self):
+        if not self.current_user:
+            raise JSONHTTPError(401)
+
+        address = self.json['address']
+        async with self.db:
+            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_eth_address = $1", address)
+            await self.db.execute("UPDATE apps SET featured = FALSE WHERE eth_address = $1", address)
+            await self.db.commit()
+
+        self.set_status(204)
+
 urls = [
     (r"^/?$", RootHandler),
-    (r"^/registry/apps/?$", AppsHandler)
+    (r"^/registry/apps/?$", AppsHandler),
+    (r"^/registry/featured/add/?$", RequestFeaturedHandler),
+    (r"^/registry/featured/remove/?$", RemoveFeaturedHandler)
 ]
