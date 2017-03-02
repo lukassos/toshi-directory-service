@@ -15,7 +15,22 @@ DATABASE_URL=postgres://<postgres-dsn> env/bin/python -m tokendirectory
 
 ## Running on heroku
 
+### Add heroku git
+
+```
+heroku git:remote -a <heroku-project-name> -r <remote-name>
+```
+
 ### Config
+
+NOTE: if you have multiple deploys you need to append
+`--app <heroku-project-name>` to all the following commands.
+
+#### Addons
+
+```
+heroku addons:create heroku-postgresql:hobby-basic
+```
 
 #### Buildpacks
 
