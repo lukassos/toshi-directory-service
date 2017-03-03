@@ -34,7 +34,8 @@ class AppsHandlerTest(AsyncHandlerTest):
 
         for username, addr, featured in setup_data:
             async with self.pool.acquire() as con:
-                await con.execute("INSERT INTO apps (username, eth_address, featured) VALUES ($1, $2, $3)", username, addr, featured)
+                await con.execute("INSERT INTO apps (name, token_id, featured) VALUES ($1, $2, $3)", username, addr, featured)
+                await con.execute("INSERT INTO sofa_manifests (token_id, payment_address) VALUES ($1, $2)", addr, addr)
 
         resp = await self.fetch("/apps", method="GET")
         self.assertResponseCodeEqual(resp, 200)
@@ -71,7 +72,9 @@ class AppsHandlerTest(AsyncHandlerTest):
     async def test_get_app(self):
         username = "TokenBot"
         async with self.pool.acquire() as con:
-            await con.execute("INSERT INTO apps (username, eth_address) VALUES ($1, $2)", username, TEST_ADDRESS)
+            await con.execute("INSERT INTO apps (name, token_id) VALUES ($1, $2)", username, TEST_ADDRESS)
+            await con.execute("INSERT INTO sofa_manifests (token_id, payment_address) VALUES ($1, $2)",
+                              TEST_ADDRESS, TEST_ADDRESS)
         resp = await self.fetch("/apps/{}".format(TEST_ADDRESS), method="GET")
         self.assertResponseCodeEqual(resp, 200)
 

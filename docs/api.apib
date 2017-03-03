@@ -16,7 +16,7 @@ This service stores Token Apps with all the required metadata to construct SOFA 
     + featured: `true` (boolean, optional) - Only return featured things
       + Default: `false`
 
-### Fetch list of app manifests [GET]
+### Fetch list of apps [GET]
 + Response 200 (application/json)
   + Body
     {
@@ -27,25 +27,32 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       "featured": false,
       "apps": [
         {
-          "languages": [
-            "en"
-          ],
-          "initRequest": {
-            "values": [
-              "paymentAddress",
-              "language"
-            ]
-          },
-          "protocol": "sofa-v1.0",
-          "interfaces": [
-            "ChatBot"
-          ],
-          "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-          "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-          "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
-          "displayName": "EtherGit",
+	  "token_id": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+	  "reputation_score": 3.5,
+	  "review_count": 10,
+	  "description": "A testing bot",
 	  "featured": true,
-          "webApp": null
+	  "name": "TestingBot",
+	  "manifest": {
+            "languages": [
+              "en"
+            ],
+            "initRequest": {
+              "values": [
+                "paymentAddress",
+                "language"
+              ]
+            },
+            "protocol": "sofa-v1.0",
+            "interfaces": [
+              "ChatBot"
+            ],
+            "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+            "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+            "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+            "displayName": "TestingBot",
+            "webApp": null
+	  }
         },
 	...
       ]
@@ -58,7 +65,7 @@ This service stores Token Apps with all the required metadata to construct SOFA 
     + limit: `20` (integer, optional) - Page size
       + Default: `10`
 
-### Fetch list of featured app manifests [GET]
+### Fetch list of featured apps [GET]
 + Response 200 (application/json)
   + Body
     {
@@ -69,59 +76,73 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       "featured": true,
       "apps": [
         {
-          "languages": [
-            "en"
-          ],
-          "initRequest": {
-            "values": [
-              "paymentAddress",
-              "language"
-            ]
-          },
-          "protocol": "sofa-v1.0",
-          "interfaces": [
-            "ChatBot"
-          ],
-          "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-          "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-          "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
-          "displayName": "EtherGit",
+	  "token_id": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+	  "reputation_score": 3.5,
+	  "review_count": 10,
+	  "description": "A testing bot",
 	  "featured": true,
-          "webApp": null
+	  "name": "TestingBot",
+	  "manifest": {
+            "languages": [
+              "en"
+            ],
+            "initRequest": {
+              "values": [
+                "paymentAddress",
+                "language"
+              ]
+            },
+            "protocol": "sofa-v1.0",
+            "interfaces": [
+              "ChatBot"
+            ],
+            "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+            "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+            "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+            "displayName": "TestingBot",
+            "webApp": null
+	  }
         },
 	...
       ]
     }
 
 
-## App [/v1/apps/{eth_address}]
+## App [/v1/apps/{token_id}]
 + Parameters
-    + eth_address: 1 (required, string) - ethereum address of the app
+    + token_id: 1 (required, string) - token id of the app
 
-### Get app manifest [GET]
+### Get app [GET]
 + Response 200 (application/json)
   + Body
-    {
-      "languages": [
-        "en"
-      ],
-      "initRequest": {
-        "values": [
-          "paymentAddress",
-          "language"
-        ]
-      },
-      "protocol": "sofa-v1.0",
-      "interfaces": [
-        "ChatBot"
-      ],
-      "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-      "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-      "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
-      "displayName": "EtherGit",
-      "featured": true,
-      "webApp": null
-    }
+      {
+	  "token_id": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+	  "reputation_score": 3.5,
+	  "review_count": 10,
+	  "description": "A testing bot",
+	  "featured": true,
+	  "name": "TestingBot",
+	  "manifest": {
+              "languages": [
+                  "en"
+              ],
+              "initRequest": {
+                  "values": [
+                      "paymentAddress",
+                      "language"
+                  ]
+              },
+              "protocol": "sofa-v1.0",
+              "interfaces": [
+                  "ChatBot"
+              ],
+              "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+              "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+              "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+              "displayName": "TestingBot",
+              "webApp": null
+	  }
+      }
 
 + Response 404 (application/json)
 
@@ -155,32 +176,36 @@ This service stores Token Apps with all the required metadata to construct SOFA 
       "featured": false,
       "apps": [
         {
-          "languages": [
-            "en"
-          ],
-          "initRequest": {
-            "values": [
-              "paymentAddress",
-              "language"
-            ]
-          },
-          "protocol": "sofa-v1.0",
-          "interfaces": [
-            "ChatBot"
-          ],
-          "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-          "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
-          "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
-          "displayName": "EtherGit",
- 	  "featured": true,
-          "webApp": null
+	  "token_id": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+	  "reputation_score": 3.5,
+	  "review_count": 10,
+	  "description": "A testing bot",
+	  "featured": true,
+	  "name": "TestingBot",
+	  "manifest": {
+            "languages": [
+              "en"
+            ],
+            "initRequest": {
+              "values": [
+                "paymentAddress",
+                "language"
+              ]
+            },
+            "protocol": "sofa-v1.0",
+            "interfaces": [
+              "ChatBot"
+            ],
+            "ownerAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+            "paymentAddress": "0x2a7f5bfe1c61c752e1cc668661f07804006678b1",
+            "avatarUrl": "http://icons.iconarchive.com/icons/martz90/circle/512/app-draw-icon.png",
+            "displayName": "TestingBot",
+            "webApp": null
+	  }
         }
       ],
       "limit": 1
     }
-
-
-
 
 # Group Usage Notes
 ## Errors

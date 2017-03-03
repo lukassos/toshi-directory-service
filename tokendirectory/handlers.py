@@ -9,27 +9,41 @@ from asyncbb.log import log
 
 def sofa_manifest_from_row(row):
     return {
-        "displayName": row['display_name'],
+        "displayName": row['name'],
         "protocol": row['protocol'],
         "avatarUrl": row['avatar_url'],
         "interfaces": row['interfaces'],
-        "ownerAddress": row['eth_address'],
-        "paymentAddress": row['eth_address'],
+        "ownerAddress": row['token_id'],
+        "paymentAddress": row['payment_address'],
         "featured": row['featured'],
         "webApp": row['web_app'],
         "languages": row['languages'],
         "initRequest": {"values": row['init_request']}
     }
 
+def app_from_row(row):
+    return {
+        "token_id": row['token_id'],
+        "name": row['name'],
+        "description": row['description'],
+        "reputation_score": float(row['reputation_score']) if row['reputation_score'] else None,
+        "review_count": row['review_count'],
+        "featured": row['featured'],
+        "manifest": sofa_manifest_from_row(row)
+    }
 
 class AppsHandler(DatabaseMixin, BaseHandler):
-    async def get(self, eth_address):
+    async def get(self, token_id):
 
         async with self.db:
-            row = await self.db.fetchrow("SELECT * FROM apps WHERE eth_address = $1", eth_address)
+            row = await self.db.fetchrow(
+                "SELECT apps.*, sofa_manifests.* FROM apps "
+                "JOIN sofa_manifests ON "
+                "sofa_manifests.token_id = apps.token_id "
+                "WHERE apps.token_id = $1", token_id)
         if row is None:
             raise JSONHTTPError(404, body={'errors': [{'id': 'not_found', 'message': 'Not Found'}]})
-        result = sofa_manifest_from_row(row)
+        result = app_from_row(row)
         self.write(result)
 
 class SearchAppsHandler(DatabaseMixin, BaseHandler):
@@ -51,24 +65,24 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
         query = self.get_query_argument('query', None)
 
         args = []
-        sql = "SELECT * FROM apps"
+        sql = "SELECT * FROM apps JOIN sofa_manifests ON sofa_manifests.token_id = apps.token_id "
         if query:
             args.append('%{}%'.format(query))
-            sql += " WHERE username ILIKE $1"
+            sql += " WHERE apps.name ILIKE $1"
             if featured:
-                sql += " AND featured IS TRUE"
+                sql += " AND apps.featured IS TRUE"
         elif featured:
-            sql += " WHERE featured IS TRUE"
+            sql += " WHERE apps.featured IS TRUE"
         countsql = "SELECT COUNT(*) " + sql[8:]
         countargs = args[:]
-        sql += " ORDER BY username OFFSET ${} LIMIT ${}".format(len(args) + 1, len(args) + 2)
+        sql += " ORDER BY apps.name OFFSET ${} LIMIT ${}".format(len(args) + 1, len(args) + 2)
         args.extend([offset, limit])
 
         async with self.db:
             count = await self.db.fetchrow(countsql, *countargs)
             rows = await self.db.fetch(sql, *args)
 
-        results = [sofa_manifest_from_row(row) for row in rows]
+        results = [app_from_row(row) for row in rows]
 
         self.write({
             'query': query or '',
