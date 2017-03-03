@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS apps (
     name TEXT,
     description TEXT,
     reputation_score DECIMAL,
-    review_count INT,
+    review_count INT DEFAULT 0,
     featured BOOLEAN DEFAULT FALSE,
     created TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() AT TIME ZONE 'utc'),
     updated TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() AT TIME ZONE 'utc')
@@ -32,4 +32,4 @@ CREATE TABLE IF NOT EXISTS admins (
     token_id TEXT PRIMARY KEY
 );
 
-UPDATE database_version SET version_number = 4;
+UPDATE database_version SET version_number = 5;

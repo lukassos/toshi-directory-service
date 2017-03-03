@@ -3,9 +3,12 @@ import urllib.parse
 from asyncbb.handlers import BaseHandler, JsonBodyMixin
 from asyncbb.database import DatabaseMixin
 from asyncbb.errors import JSONHTTPError
+from tokenservices.handlers import RequestVerificationMixin
 from tokenbrowser.id_service_client import IdServiceClient
-from tornado.web import StaticFileHandler
+from tornado.web import StaticFileHandler, HTTPError
 from asyncbb.log import log
+from decimal import Decimal
+from tokenbrowser.utils import validate_address, validate_decimal_string, parse_int
 
 def sofa_manifest_from_row(row):
     return {
@@ -92,6 +95,47 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
             'featured': featured,
             'total': count['count']
         })
+
+class ReputationUpdateHandler(RequestVerificationMixin, DatabaseMixin, BaseHandler):
+
+    async def post(self):
+
+        if 'reputation' not in self.application.config or 'id' not in self.application.config['reputation']:
+            raise HTTPError(404)
+
+        try:
+            address = self.verify_request()
+        except JSONHTTPError:
+            raise HTTPError(404)
+
+        if address != self.application.config['reputation']['id']:
+            raise HTTPError(404)
+
+        if not all(x in self.json for x in ['address', 'score', 'count']):
+            raise JSONHTTPError(400, body={'errors': [{'id': 'bad_arguments', 'message': 'Bad Arguments'}]})
+
+        token_id = self.json['address']
+        if not validate_address(token_id):
+            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_address', 'message': 'Invalid Address'}]})
+
+        count = self.json['count']
+        count = parse_int(count)
+        if count is None:
+            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_count', 'message': 'Invalid Count'}]})
+
+        score = self.json['score']
+        if isinstance(score, str) and validate_decimal_string(score):
+            score = Decimal(score)
+        if not isinstance(score, (int, float, Decimal)):
+            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_score', 'message': 'Invalid Score'}]})
+
+        async with self.db:
+            await self.db.execute("UPDATE apps SET reputation_score = $1, review_count = $2 WHERE token_id = $3",
+                                  score, count, token_id)
+            await self.db.commit()
+
+        self.set_status(204)
+
 
 class UserMixin:
 

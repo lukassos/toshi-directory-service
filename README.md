@@ -49,6 +49,7 @@ heroku config:set SSH_KEY=$(cat path/to/your/keys/id_rsa | base64)
 heroku config:set PGSQL_STUNNEL_ENABLED=1
 heroku config:set NODE_ENV=development
 heroku config:set ID_SERVICE_URL=https://token-id-service.herokuapp.com
+heroku config:set REPUTATION_SERVICE_ID=0x...
 ```
 
 set cookie secret for login (should be something random and secret)
