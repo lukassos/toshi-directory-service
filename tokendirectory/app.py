@@ -18,6 +18,7 @@ urls = admin.urls + registry.urls + [
     # api
     (r"^/v1/apps/(0x[a-fA-F0-9]{40})/?$", handlers.AppsHandler),
     (r"^/v1/(?:search/)?apps(?:/(featured))?/?$", handlers.SearchAppsHandler),
+    (r"^/v1/manifest/(0x[a-fA-F0-9]{40})/?$", handlers.SofaManifestHandler),
 
     # reputation update endpoint
     (r"^/v1/reputation/?$", handlers.ReputationUpdateHandler)

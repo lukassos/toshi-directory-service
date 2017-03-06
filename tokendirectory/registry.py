@@ -34,11 +34,11 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         async with self.db:
             count = await self.db.fetchrow(
-                "SELECT count(*) FROM submissions WHERE submitter_address = $1",
+                "SELECT count(*) FROM submissions WHERE submitter_token_id = $1",
                 self.current_user)
             apps = await self.db.fetch(
                 "SELECT apps.*, submissions.request_for_featured FROM submissions JOIN apps ON "
-                "submissions.app_eth_address = apps.eth_address "
+                "submissions.app_token_id = apps.token_id "
                 "WHERE submissions.submitter_address = $1 "
                 "ORDER BY apps.username "
                 "OFFSET $2 "
@@ -65,33 +65,33 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
         if not self.current_user:
             raise JSONHTTPError(401)
 
-        if not all(x in self.json for x in ['display_name', 'owner_address']):
+        if not all(x in self.json for x in ['display_name', 'token_id']):
             raise JSONHTTPError(400, body={'errors': [{'id': 'bad_arguments', 'message': 'Bad Arguments'}]})
 
-        owner_address = self.json['owner_address']
-        if not validate_address(owner_address):
-            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_address', 'message': 'Invalid Arguments'}]})
+        token_id = self.json['token_id']
+        if not validate_address(token_id):
+            raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_token_id', 'message': 'Invalid Arguments'}]})
 
         # check if the user has already submitted this app
         async with self.db:
             existing = await self.db.fetchrow(
-                "SELECT * FROM submissions WHERE submitter_address = $1 AND app_eth_address = $2",
-                self.current_user, self.json['owner_address'])
+                "SELECT * FROM submissions WHERE submitter_token_id = $1 AND app_token_id = $2",
+                self.current_user, self.json['token_id'])
         if existing:
             raise JSONHTTPError(400, body={'errors': [{'id': 'already_exists', 'message': 'App already exists'}]})
 
         # check if the app has already been submitted (by someone else for e.g.)
         async with self.db:
             existing = await self.db.fetchrow(
-                "SELECT * FROM apps WHERE eth_address = $1",
-                self.json['owner_address'])
+                "SELECT * FROM apps WHERE token_id = $1",
+                self.json['token_id'])
 
         # TODO: maybe this is actually ok (but it would be weird)
         if existing:
             raise JSONHTTPError(400, body={'errors': [{'id': 'already_exists', 'message': 'App already exists'}]})
 
         client = IdServiceClient(use_tornado=True)
-        bot = await client.get_user(self.json['owner_address'])
+        bot = await client.get_user(self.json['token_id'])
         if bot is None:
             raise JSONHTTPError(400, body={'errors': [{'id': 'not_found', 'message': 'Cannot find given address in the id service'}]})
 
@@ -106,22 +106,22 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         avatar_url = self.json.get('avatar_url', None)
         if not avatar_url:
-            avatar_url = 'https://token-id-service.herokuapp.com/identicon/{}.png'.format(owner_address)
+            avatar_url = 'https://token-id-service.herokuapp.com/identicon/{}.png'.format(token_id)
 
         async with self.db:
             await self.db.execute(
                 "INSERT INTO apps "
-                "(eth_address, username, display_name, init_request, languages, interfaces, protocol, avatar_url) "
+                "(token_id, username, display_name, init_request, languages, interfaces, protocol, avatar_url) "
                 "VALUES "
                 "($1, $2, $3, $4, $5, $6, $7, $8)",
-                owner_address, username, display_name, init_request, languages, interfaces, protocol, avatar_url)
+                token_id, username, display_name, init_request, languages, interfaces, protocol, avatar_url)
             await self.db.execute(
                 "INSERT INTO submissions "
-                "(app_eth_address, submitter_address) "
+                "(app_token_id, submitter_token_id) "
                 "VALUES "
                 "($1, $2)",
-                owner_address, self.current_user)
-            row = await self.db.fetchrow("SELECT * FROM apps WHERE eth_address = $1", owner_address)
+                token_id, self.current_user)
+            row = await self.db.fetchrow("SELECT * FROM apps WHERE token_id = $1", token_id)
             await self.db.commit()
 
         self.write(sofa_manifest_from_row(row))
@@ -132,33 +132,33 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
         if not self.current_user:
             raise JSONHTTPError(401)
 
-        if not all(x in self.json for x in ['display_name', 'owner_address']):
+        if not all(x in self.json for x in ['display_name', 'token_id']):
             raise JSONHTTPError(400, body={'errors': [{'id': 'bad_arguments', 'message': 'Bad Arguments'}]})
 
-        owner_address = self.json['owner_address']
-        if not validate_address(owner_address):
+        token_id = self.json['token_id']
+        if not validate_address(token_id):
             raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_address', 'message': 'Invalid Arguments'}]})
 
         # check if the user has already submitted this app
         async with self.db:
             existing = await self.db.fetchrow(
-                "SELECT * FROM submissions WHERE submitter_address = $1 AND app_eth_address = $2",
-                self.current_user, self.json['owner_address'])
+                "SELECT * FROM submissions WHERE submitter_token_id = $1 AND app_token_id = $2",
+                self.current_user, self.json['token_id'])
         if not existing:
             raise JSONHTTPError(400, body={'errors': [{'id': 'app_does_not_exists', 'message': 'App Doesn\'t exists'}]})
 
         display_name = self.json['display_name']
         avatar_url = self.json.get('avatar_url', None)
         if not avatar_url:
-            avatar_url = 'https://token-id-service.herokuapp.com/identicon/{}.png'.format(owner_address)
+            avatar_url = 'https://token-id-service.herokuapp.com/identicon/{}.png'.format(token_id)
 
         async with self.db:
             await self.db.execute(
                 "UPDATE apps "
                 "SET display_name = $1, avatar_url = $2 "
-                "WHERE eth_address = $3",
-                display_name, avatar_url, owner_address)
-            row = await self.db.fetchrow("SELECT * FROM apps WHERE eth_address = $1", owner_address)
+                "WHERE token_id = $3",
+                display_name, avatar_url, token_id)
+            row = await self.db.fetchrow("SELECT * FROM apps WHERE token_id = $1", token_id)
             await self.db.commit()
 
         self.write(sofa_manifest_from_row(row))
@@ -171,7 +171,7 @@ class RequestFeaturedHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            await self.db.execute("UPDATE submissions SET request_for_featured = TRUE WHERE app_eth_address = $1", address)
+            await self.db.execute("UPDATE submissions SET request_for_featured = TRUE WHERE app_token_id = $1", address)
             await self.db.commit()
 
         self.set_status(204)
@@ -184,8 +184,8 @@ class RemoveFeaturedHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_eth_address = $1", address)
-            await self.db.execute("UPDATE apps SET featured = FALSE WHERE eth_address = $1", address)
+            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_token_id = $1", address)
+            await self.db.execute("UPDATE apps SET featured = FALSE WHERE token_id = $1", address)
             await self.db.commit()
 
         self.set_status(204)

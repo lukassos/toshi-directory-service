@@ -27,12 +27,17 @@ def sofa_manifest_from_row(row):
 def app_from_row(row):
     return {
         "token_id": row['token_id'],
-        "name": row['name'],
-        "description": row['description'],
+        "username": row['username'],
         "reputation_score": float(row['reputation_score']) if row['reputation_score'] else None,
         "review_count": row['review_count'],
-        "featured": row['featured'],
-        "manifest": sofa_manifest_from_row(row)
+        "is_app": True,
+        "payment_address": row['payment_address'],
+        "custom": {
+            "about": row['description'],
+            "name": row['name'],
+            "avatar": row['avatar_url'],
+            #"manifest": sofa_manifest_from_row(row)
+        }
     }
 
 class AppsHandler(DatabaseMixin, BaseHandler):
@@ -95,6 +100,22 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
             'featured': featured,
             'total': count['count']
         })
+
+
+class SofaManifestHandler(DatabaseMixin, BaseHandler):
+    async def get(self, token_id):
+
+        async with self.db:
+            row = await self.db.fetchrow(
+                "SELECT apps.*, sofa_manifests.* FROM apps "
+                "JOIN sofa_manifests ON "
+                "sofa_manifests.token_id = apps.token_id "
+                "WHERE apps.token_id = $1", token_id)
+        if row is None:
+            raise JSONHTTPError(404, body={'errors': [{'id': 'not_found', 'message': 'Not Found'}]})
+        result = sofa_manifest_from_row(row)
+        self.write(result)
+
 
 class ReputationUpdateHandler(RequestVerificationMixin, DatabaseMixin, BaseHandler):
 
@@ -178,7 +199,7 @@ class LoginPageHandler(JsonBodyMixin, StaticFileHandler):
             user = None
 
         if user:
-            self.set_secure_cookie("user", user['owner_address'])
+            self.set_secure_cookie("user", user['token_id'])
             self.set_status(204)
         else:
             raise JSONHTTPError(400, body={'errors': [{'id': 'invalid_token', 'message': 'Invalid token'}]})
