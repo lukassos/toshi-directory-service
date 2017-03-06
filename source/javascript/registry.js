@@ -2,7 +2,7 @@ import http from './http.js';
 
 http('/currentuser').then((data) => {
   let user = data['user'];
-  let address = user['owner_address'];
+  let address = user['token_id'];
   if (address) {
     let qrimage = document.getElementById('qrcode');
     let datael = document.getElementById('welcome-msg');
@@ -126,7 +126,7 @@ function newAppRow(app, tr) {
         method: 'PUT',
         data: {
           'avatar_url': editicon.value,
-          'owner_address': app['ownerAddress'],
+          'token_id': app['ownerAddress'],
           'display_name': editname.value
         }
       });
@@ -190,13 +190,13 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
   let elems = document.forms['newappform'].elements;
   let avatar_url = elems['avatar_url'].value;
-  let owner_address = elems['owner_address'].value;
+  let token_id = elems['token_id'].value;
   let display_name = elems['display_name'].value;
   http('/registry/apps', {
     method: 'POST',
     data: {
       'avatar_url': avatar_url,
-      'owner_address': owner_address,
+      'token_id': token_id,
       'display_name': display_name
     }
   }).then((data) => {

@@ -8,6 +8,16 @@ from tokenbrowser.utils import validate_address
 
 from .handlers import UserMixin, sofa_manifest_from_row
 
+def response_for_row(row):
+    rval = sofa_manifest_from_row(row)
+    if 'featured' in row:
+        rval['featured'] = row['featured']
+    else:
+        rval['featured'] = False
+    if 'request_for_featured' in row:
+        rval['requestForFeatured'] = row['request_for_featured']
+    return rval
+
 class RootHandler(UserMixin, StaticFileHandler):
 
     def initialize(self):
@@ -37,10 +47,11 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
                 "SELECT count(*) FROM submissions WHERE submitter_token_id = $1",
                 self.current_user)
             apps = await self.db.fetch(
-                "SELECT apps.*, submissions.request_for_featured FROM submissions JOIN apps ON "
-                "submissions.app_token_id = apps.token_id "
-                "WHERE submissions.submitter_address = $1 "
-                "ORDER BY apps.username "
+                "SELECT apps.*, sofa_manifests.*, submissions.request_for_featured FROM submissions "
+                "JOIN apps ON submissions.app_token_id = apps.token_id "
+                "JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id "
+                "WHERE submissions.submitter_token_id = $1 "
+                "ORDER BY apps.name "
                 "OFFSET $2 "
                 "LIMIT $3",
                 self.current_user,
@@ -48,8 +59,7 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
 
         results = []
         for row in apps:
-            val = sofa_manifest_from_row(row)
-            val['requestForFeatured'] = row['request_for_featured']
+            val = response_for_row(row)
             results.append(val)
 
         self.write({
@@ -111,20 +121,24 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
         async with self.db:
             await self.db.execute(
                 "INSERT INTO apps "
-                "(token_id, username, display_name, init_request, languages, interfaces, protocol, avatar_url) "
+                "(token_id, name) VALUES ($1, $2) ",
+                token_id, display_name)
+            await self.db.execute(
+                "INSERT INTO sofa_manifests "
+                "(token_id, payment_address, username, init_request, languages, interfaces, protocol, avatar_url) "
                 "VALUES "
                 "($1, $2, $3, $4, $5, $6, $7, $8)",
-                token_id, username, display_name, init_request, languages, interfaces, protocol, avatar_url)
+                token_id, payment_address, username, init_request, languages, interfaces, protocol, avatar_url)
             await self.db.execute(
                 "INSERT INTO submissions "
                 "(app_token_id, submitter_token_id) "
                 "VALUES "
                 "($1, $2)",
                 token_id, self.current_user)
-            row = await self.db.fetchrow("SELECT * FROM apps WHERE token_id = $1", token_id)
+            row = await self.db.fetchrow("SELECT * FROM apps JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id WHERE token_id = $1", token_id)
             await self.db.commit()
 
-        self.write(sofa_manifest_from_row(row))
+        self.write(response_for_row(row))
 
     async def put(self):
         """Handles submitting a new app to the directory service"""
@@ -155,13 +169,22 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
         async with self.db:
             await self.db.execute(
                 "UPDATE apps "
-                "SET display_name = $1, avatar_url = $2 "
-                "WHERE token_id = $3",
-                display_name, avatar_url, token_id)
-            row = await self.db.fetchrow("SELECT * FROM apps WHERE token_id = $1", token_id)
+                "SET name = $1 "
+                "WHERE token_id = $2",
+                display_name, token_id)
+            await self.db.execute(
+                "UPDATE sofa_manifests "
+                "SET avatar_url = $1 "
+                "WHERE token_id = $2",
+                avatar_url, token_id)
+            row = await self.db.fetchrow(
+                "SELECT * FROM apps "
+                "JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id "
+                "JOIN submissions ON submissions.app_token_id = apps.token_id "
+                "WHERE token_id = $1", token_id)
             await self.db.commit()
 
-        self.write(sofa_manifest_from_row(row))
+        self.write(response_for_row(row))
 
 class RequestFeaturedHandler(UserMixin, DatabaseMixin, BaseHandler):
 

@@ -2,15 +2,18 @@ from asyncbb.handlers import BaseHandler
 from asyncbb.database import DatabaseMixin
 from asyncbb.errors import JSONHTTPError
 from tornado.web import StaticFileHandler
+from tornado.httpclient import HTTPError
 from tokenbrowser.id_service_client import IdServiceClient
 
-from .handlers import UserMixin, sofa_manifest_from_row
+from .handlers import UserMixin
+
+from .registry import response_for_row
 
 class AdminUserMixin(UserMixin):
 
     async def is_admin_user(self):
         async with self.db:
-            user = await self.db.fetchrow('SELECT * FROM admins WHERE eth_address = $1', self.current_user)
+            user = await self.db.fetchrow('SELECT * FROM admins WHERE token_id = $1', self.current_user)
         return True if user else False
 
 class RootHandler(AdminUserMixin, DatabaseMixin, StaticFileHandler):
@@ -41,17 +44,17 @@ class AppsHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
             count = await self.db.fetchrow(
                 "SELECT count(*) FROM submissions")
             apps = await self.db.fetch(
-                "SELECT apps.*, submissions.request_for_featured FROM submissions JOIN apps ON "
-                "submissions.app_eth_address = apps.eth_address "
-                "ORDER BY apps.username "
+                "SELECT apps.*, sofa_manifests.*, submissions.request_for_featured FROM submissions "
+                "JOIN apps ON submissions.app_token_id = apps.token_id "
+                "JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id "
+                "ORDER BY apps.name "
                 "OFFSET $1 "
                 "LIMIT $2",
                 offset, limit)
 
         results = []
         for row in apps:
-            val = sofa_manifest_from_row(row)
-            val['requestForFeatured'] = row['request_for_featured']
+            val = response_for_row(row)
             results.append(val)
 
         self.write({
@@ -85,8 +88,11 @@ class AdminsHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
         results = []
         client = IdServiceClient(use_tornado=True)
         for row in admins:
-            val = await client.get_user(row['eth_address'])
-            results.append(val)
+            try:
+                val = await client.get_user(row['token_id'])
+                results.append(val)
+            except HTTPError:
+                pass
 
         self.write({
             'offset': offset,
@@ -104,9 +110,9 @@ class AddAdminHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            row = await self.db.fetchrow("SELECT * FROM admins WHERE eth_address = $1", address)
+            row = await self.db.fetchrow("SELECT * FROM admins WHERE token_id = $1", address)
             if row is None:
-                await self.db.execute("INSERT INTO admins (eth_address) VALUES ($1)", address)
+                await self.db.execute("INSERT INTO admins (token_id) VALUES ($1)", address)
                 await self.db.commit()
 
         self.set_status(204)
@@ -121,7 +127,7 @@ class RemoveAdminHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            await self.db.execute("DELETE FROM admins WHERE eth_address= $1", address)
+            await self.db.execute("DELETE FROM admins WHERE token_id= $1", address)
             await self.db.commit()
 
         self.set_status(204)
@@ -148,8 +154,8 @@ class AddFeaturedHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            await self.db.execute("UPDATE apps SET featured = TRUE WHERE eth_address = $1", address)
-            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_eth_address = $1", address)
+            await self.db.execute("UPDATE apps SET featured = TRUE WHERE token_id = $1", address)
+            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_token_id = $1", address)
             await self.db.commit()
 
         self.set_status(204)
@@ -162,7 +168,7 @@ class RemoveFeaturedHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            await self.db.execute("UPDATE apps SET featured = FALSE WHERE eth_address = $1", address)
+            await self.db.execute("UPDATE apps SET featured = FALSE WHERE token_id = $1", address)
             await self.db.commit()
 
         self.set_status(204)
@@ -175,8 +181,8 @@ class RejectFeaturedHandler(AdminUserMixin, DatabaseMixin, BaseHandler):
 
         address = self.json['address']
         async with self.db:
-            await self.db.execute("UPDATE apps SET featured = FALSE WHERE eth_address = $1", address)
-            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_eth_address = $1", address)
+            await self.db.execute("UPDATE apps SET featured = FALSE WHERE token_id = $1", address)
+            await self.db.execute("UPDATE submissions SET request_for_featured = FALSE WHERE app_token_id = $1", address)
             await self.db.commit()
 
         self.set_status(204)

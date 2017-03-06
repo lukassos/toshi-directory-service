@@ -4,7 +4,7 @@ const id_service_url = process.env.ID_SERVICE_URL;
 
 http('/currentuser').then((data) => {
   let user = data['user'];
-  let address = user['owner_address'];
+  let address = user['token_id'];
   if (address) {
     let qrimage = document.getElementById('qrcode');
     let datael = document.getElementById('welcome-msg');
@@ -145,7 +145,7 @@ function newAdminRow(admin) {
   img_icon.classList.add('appicon');
   let avatar = admin['custom']['avatar'];
   if (!avatar) {
-    avatar = '/identicon/' + admin['owner_address'] + '.png';
+    avatar = '/identicon/' + admin['token_id'] + '.png';
   }
   if (avatar.substring(0, 11) == '/identicon/') {
     avatar = id_service_url + avatar;
@@ -157,14 +157,14 @@ function newAdminRow(admin) {
   td_name.appendChild(document.createTextNode(admin['username']));
 
   let td_address = document.createElement('td');
-  td_address.appendChild(document.createTextNode(admin['owner_address']));
+  td_address.appendChild(document.createTextNode(admin['token_id']));
 
   let td_opts = document.createElement('td');
   let a = document.createElement('a');
   a.href = '';
   a.addEventListener('click', (event) => {
     event.preventDefault();
-    http('/admin/admins/remove', {method: 'POST', data: {address: admin['owner_address']}}).then((data) => {
+    http('/admin/admins/remove', {method: 'POST', data: {address: admin['token_id']}}).then((data) => {
       newtr.remove();
     });
   }, false);
@@ -193,9 +193,9 @@ function clearSearchResults() {
 }
 function addSearchResult(user) {
   let li = document.createElement("LI");
-  li.appendChild(document.createTextNode(user['username'] + " (" + user['owner_address'] + ")"));
+  li.appendChild(document.createTextNode(user['username'] + " (" + user['token_id'] + ")"));
   li.addEventListener('click', (event) => {
-    http('/admin/admins/add', {method: 'POST', data: {address: user['owner_address']}}).then((data) => {
+    http('/admin/admins/add', {method: 'POST', data: {address: user['token_id']}}).then((data) => {
       newAdminRow(user);
       searchinput.value = '';
       clearSearchResults();
