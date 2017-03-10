@@ -135,7 +135,7 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
                 "VALUES "
                 "($1, $2)",
                 token_id, self.current_user)
-            row = await self.db.fetchrow("SELECT * FROM apps JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id WHERE token_id = $1", token_id)
+            row = await self.db.fetchrow("SELECT * FROM apps JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id WHERE apps.token_id = $1", token_id)
             await self.db.commit()
 
         self.write(response_for_row(row))
@@ -181,7 +181,7 @@ class AppsHandler(UserMixin, DatabaseMixin, BaseHandler):
                 "SELECT * FROM apps "
                 "JOIN sofa_manifests ON apps.token_id = sofa_manifests.token_id "
                 "JOIN submissions ON submissions.app_token_id = apps.token_id "
-                "WHERE token_id = $1", token_id)
+                "WHERE apps.token_id = $1", token_id)
             await self.db.commit()
 
         self.write(response_for_row(row))
