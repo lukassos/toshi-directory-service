@@ -2,8 +2,8 @@ from tornado.escape import json_decode
 from tornado.testing import gen_test
 
 from tokendirectory.app import urls
-from asyncbb.test.base import AsyncHandlerTest
-from asyncbb.test.database import requires_database
+from tokenservices.test.base import AsyncHandlerTest
+from tokenservices.test.database import requires_database
 
 TEST_ADDRESS = "0x056db290f8ba3250ca64a45d16284d04bc6f5fbf"
 

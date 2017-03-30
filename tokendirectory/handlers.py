@@ -1,14 +1,15 @@
 import urllib.parse
+import string
 
-from asyncbb.handlers import BaseHandler, JsonBodyMixin
-from asyncbb.database import DatabaseMixin
-from asyncbb.errors import JSONHTTPError
+from tokenservices.handlers import BaseHandler, JsonBodyMixin
+from tokenservices.database import DatabaseMixin
+from tokenservices.errors import JSONHTTPError
 from tokenservices.handlers import RequestVerificationMixin
-from tokenbrowser.id_service_client import IdServiceClient
+from tokenservices.clients import IdServiceClient
 from tornado.web import StaticFileHandler, HTTPError
-from asyncbb.log import log
+from tokenservices.log import log
 from decimal import Decimal
-from tokenbrowser.utils import validate_address, validate_decimal_string, parse_int
+from tokenservices.utils import validate_address, validate_decimal_string, parse_int
 
 def sofa_manifest_from_row(row):
     return {
@@ -75,6 +76,8 @@ class SearchAppsHandler(DatabaseMixin, BaseHandler):
         args = []
         sql = "SELECT * FROM apps JOIN sofa_manifests ON sofa_manifests.token_id = apps.token_id "
         if query:
+            # strip any punctuation
+            query = ''.join([c for c in query if c not in string.punctuation])
             args.append('%{}%'.format(query))
             sql += " WHERE apps.name ILIKE $1"
             if featured:

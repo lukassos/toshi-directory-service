@@ -1,9 +1,9 @@
-from asyncbb.handlers import BaseHandler
-from asyncbb.database import DatabaseMixin
-from asyncbb.errors import JSONHTTPError
+from tokenservices.handlers import BaseHandler
+from tokenservices.database import DatabaseMixin
+from tokenservices.errors import JSONHTTPError
 from tornado.web import StaticFileHandler
 from tornado.httpclient import HTTPError
-from tokenbrowser.id_service_client import IdServiceClient
+from tokenservices.clients import IdServiceClient
 
 from .handlers import UserMixin
 
