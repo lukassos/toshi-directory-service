@@ -1,5 +1,6 @@
 *.pyc
 env
+requirements.txt
 .#*
 public/
 node_modules/
