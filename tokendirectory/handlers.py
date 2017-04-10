@@ -33,6 +33,10 @@ def app_from_row(row):
         "review_count": row['review_count'],
         "is_app": True,
         "payment_address": row['payment_address'],
+        "about": row['description'],
+        "name": row['name'],
+        "avatar": row['avatar_url'],
+        # for backwards compatability
         "custom": {
             "about": row['description'],
             "name": row['name'],
